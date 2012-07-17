@@ -1,0 +1,9 @@
+================================================================================
+bash-scripts
+================================================================================
+
+A small collection of bash script utilities:
+
+1) gitpoll
+     Periodically polls a git repo looking for a new tag; if it finds one, it
+     performs a new pull.
