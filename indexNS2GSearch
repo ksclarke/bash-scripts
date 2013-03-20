@@ -17,12 +17,20 @@
 FEDORA_HOST="fedora.library.ucla.edu"
 FEDORA_PORT="8080"
 
+# If you want to index on a different machine, input those details here
+GSEARCH_HOST="$FEDORA_HOST"
+GSEARCH_PORT="$FEDORA_PORT"
+
 FEDORA_USER="fedoraAdmin"
 NS_FIELD="identifier"
 
 # Nothing after this point should require editing; this script requires that
 # the Fedora command line tools be installed and available on the system $PATH
 CLIENT=$(which fedora-find.sh)
+
+# Fedora tools don't exit with proper exit codes so we have to check this way
+# so we don't look silly saying it was successful with an error on the screen
+FOUND_RECORDS=false
 
 # The below insures the gsearch alias works within this bash script
 shopt -s expand_aliases
@@ -52,7 +60,7 @@ else
   for LINE in `$FEDCMD`; do
     # We check the Fedora command's output for our queried namespace
     if [[ "$LINE" == *$1* ]]; then
-      GSEARCH_SERVICE="http://$FEDORA_HOST:$FEDORA_PORT/fedoragsearch/rest"
+      GSEARCH_SERVICE="http://$GSEARCH_HOST:$GSEARCH_PORT/fedoragsearch/rest"
       GSEARCH_QSTRING="?operation=updateIndex&action=fromPid&value="
 
       # Then we extract the item ID from the namespaced ID output string
@@ -63,6 +71,7 @@ else
       # If we get back a 200 HTTP response code, we're truckin; otherwise, fail
       if [ "$RESPONSE" = "200" ]; then
         echo "$1:$ITEM_ID successfully indexed"
+        FOUND_RECORDS=true
       else
         echo "Failed to index $1:$ITEM_ID; check the logs for why ($RESPONSE)"
         exit 1
@@ -71,4 +80,6 @@ else
   done
 fi;
 
-echo "Successfully indexed all the namespaced records!"
+if $FOUND_RECORDS; then
+  echo "Successfully indexed all the namespaced records!"
+fi;
