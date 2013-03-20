@@ -1,0 +1,67 @@
+#! /bin/bash
+
+#
+# A script for indexing (in GSearch) all Fedora records in a given namespace.
+#
+# There are a few configurable things up front (host, port, etc.), but
+# namespace and password are supplied by user when initiating the script.
+#
+# Usage: ./indexNS2GSearch edu.ucla.library.yourCollectionNameGoesHere
+#
+FEDORA_HOST="fedora.library.ucla.edu"
+FEDORA_PORT="8080"
+FEDORA_USER="fedoraAdmin"
+NS_FIELD="identifier"
+
+# Nothing after this point should require editing; this script requires that
+# the Fedora command line tools be installed and available on the system $PATH
+CLIENT=$(which fedora-find.sh)
+
+# The below insures the gsearch alias works within this bash script
+shopt -s expand_aliases
+alias gsearch="curl --write-out %{http_code} --silent --output /dev/null"
+
+# We must have the Fedora command line tools installed, and pass in a namespace
+if [ -z "$CLIENT" ]; then
+  echo " fedora-find.sh isn't on your system path; add it and rerun the script"
+  exit 1
+elif [ -z "$1" ]; then
+  echo " You forgot to pass in a namespace; try something like:"
+  echo " ./indexNS2GSearch edu.ucla.library.yourCollectionNameGoesHere"
+  exit 1
+fi
+
+# The script asks for the configured FEDORA_USER's password
+read -p "Password please: " -s PW
+echo ""
+
+if [ -z "$PW" ]; then
+  echo " You forgot to input a password; try again, please"
+  exit 1
+else
+  # Starting our command with a space means it doesn't go into our history file
+  FEDCMD=" $CLIENT $FEDORA_HOST $FEDORA_PORT $FEDORA_USER $PW $NS_FIELD $1* http"
+
+  for LINE in `$FEDCMD`; do
+    # We check the Fedora command's output for our queried namespace
+    if [[ "$LINE" == *$1* ]]; then
+      GSEARCH_SERVICE="http://$FEDORA_HOST:$FEDORA_PORT/fedoragsearch/rest"
+      GSEARCH_QSTRING="?operation=updateIndex&action=fromPid&value="
+
+      # Then we extract the item ID from the namespaced ID output string
+      ITEM_ID=${LINE#$1:}
+      # This works if your gsearch isn't behind an authentication layer
+      RESPONSE=$(gsearch "$GSEARCH_SERVICE$GSEARCH_QSTRING$1%3A$ITEM_ID")
+
+      # If we get back a 200 HTTP response code, we're truckin; otherwise, fail
+      if [ "$RESPONSE" = "200" ]; then
+        echo "$1:$ITEM_ID successfully indexed"
+      else
+        echo "Failed to index $1:$ITEM_ID; check the logs for why ($RESPONSE)"
+        exit 1
+      fi
+    fi
+  done
+fi;
+
+echo "Successfully indexed all the namespaced records!"
