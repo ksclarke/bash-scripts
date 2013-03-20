@@ -8,6 +8,12 @@
 #
 # Usage: ./indexNS2GSearch edu.ucla.library.yourCollectionNameGoesHere
 #
+# Dependencies: cURL, Bash shell, and the Fedora Commons command line tools
+#
+# Author: Kevin S. Clarke <ksclarke@gmail.com>
+# Created: 03/19/2013
+# Updated: 03/19/2013
+#
 FEDORA_HOST="fedora.library.ucla.edu"
 FEDORA_PORT="8080"
 
