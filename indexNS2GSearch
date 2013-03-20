@@ -10,6 +10,7 @@
 #
 FEDORA_HOST="fedora.library.ucla.edu"
 FEDORA_PORT="8080"
+
 FEDORA_USER="fedoraAdmin"
 NS_FIELD="identifier"
 
