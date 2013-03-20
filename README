@@ -7,3 +7,7 @@ A small collection of bash script utilities:
 1) gitpoll
      Periodically polls a git repo looking for a new tag; if it finds one, it
      performs a new pull.
+
+2) indexNS2GSearch
+     Indexes all the records in Fedora that have a supplied namespace; GSearch
+     doesn't have a way to batch index records so this script works around that.
