@@ -32,6 +32,10 @@ CLIENT=$(which fedora-find.sh)
 # so we don't look silly saying it was successful with an error on the screen
 FOUND_RECORDS=false
 
+# We want to be able to limit to X number of records to scan through
+COUNT=0
+TOTAL=0
+
 # The below insures the gsearch alias works within this bash script
 shopt -s expand_aliases
 alias gsearch="curl --write-out %{http_code} --silent --output /dev/null"
@@ -44,6 +48,12 @@ elif [ -z "$1" ]; then
   echo " You forgot to pass in a namespace; try something like:"
   echo " ./indexNS2GSearch edu.ucla.library.yourCollectionNameGoesHere"
   exit 1
+fi
+
+if [[ $2 != *[!0-9]* ]]; then
+  TOTAL=$2
+else
+  echo " Your second argument doesn't look like an int; I'm ignoring it\n"
 fi
 
 # The script asks for the configured FEDORA_USER's password
@@ -75,6 +85,15 @@ else
       else
         echo "Failed to index $1:$ITEM_ID; check the logs for why ($RESPONSE)"
         exit 1
+      fi
+
+      if [ $TOTAL -ne 0 ]; then
+        COUNT=`expr $COUNT + 1`
+
+        if [ $COUNT -ge $TOTAL ]; then
+          echo "Processed $COUNT records"
+          exit 0
+        fi
       fi
     fi
   done
