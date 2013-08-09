@@ -1,6 +1,6 @@
-================================================================================
+==============================================================================
 bash-scripts
-================================================================================
+==============================================================================
 
 A small collection of bash script utilities:
 
@@ -10,4 +10,12 @@ A small collection of bash script utilities:
 
 2) indexNS2GSearch
      Indexes all the records in Fedora that have a supplied namespace; GSearch
-     doesn't have a way to batch index records so this script works around that.
+     doesn't have a way to batch index records; this script works around that.
+
+3) pidgin
+     A simple wrapper for the Pidgin IM client, resolving issues it has with
+     the Microsoft Lync plugin.
+
+4) drupalup
+     Runs a series of drush scripts to perform Drupal core updates on a series
+     of Drupal sites (multisites or Drupal installs at different locations).
