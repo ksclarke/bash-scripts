@@ -16,6 +16,9 @@ A small collection of bash script utilities:
      A simple wrapper for the Pidgin IM client, resolving issues it has with
      the Microsoft Lync plugin.
 
-4) drupalup
+4) drupal-up
      Runs a series of drush scripts to perform Drupal core updates on a series
      of Drupal sites (multisites or Drupal installs at different locations).
+
+5) drush-up
+     A script to disable and enable all the currently installed Drupal modules.
