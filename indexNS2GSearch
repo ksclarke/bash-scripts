@@ -67,14 +67,14 @@ else
   # Starting our command with a space means it doesn't go into our history file
   FEDCMD=" $CLIENT $FEDORA_HOST $FEDORA_PORT $FEDORA_USER $PW $NS_FIELD $1* http"
 
-  for LINE in `$FEDCMD`; do
+  while read LINE ; do
     # We check the Fedora command's output for our queried namespace
     if [[ "$LINE" == *$1* ]]; then
       GSEARCH_SERVICE="http://$GSEARCH_HOST:$GSEARCH_PORT/fedoragsearch/rest"
       GSEARCH_QSTRING="?operation=updateIndex&action=fromPid&value="
 
       # Then we extract the item ID from the namespaced ID output string
-      ITEM_ID=${LINE#$1:}
+      ITEM_ID=${LINE#*:}
       # This works if your gsearch isn't behind an authentication layer
       RESPONSE=$(gsearch "$GSEARCH_SERVICE$GSEARCH_QSTRING$1%3A$ITEM_ID")
 
@@ -96,7 +96,7 @@ else
         fi
       fi
     fi
-  done
+  done < <($FEDCMD)
 fi;
 
 if $FOUND_RECORDS; then
