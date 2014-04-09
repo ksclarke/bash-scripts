@@ -17,11 +17,15 @@
 # Last updated: 2014-04-10
 ####
 
+# TODO: make these arguments?
+THREADS=15
+OBJECTS=30000
+
 MAVEN_MEMORY="-Xmx2048m"
 CONFIG_OPTS=( \
-  config/infinispan/file/infinispan.xml \
-  config/infinispan/leveldb/infinispan.xml \
   config/infinispan/leveldb-default/infinispan.xml \
+  config/infinispan/leveldb/infinispan.xml \
+  config/infinispan/file/infinispan.xml \
   config/infinispan/ram/infinispan.xml \
 )
 
@@ -31,6 +35,7 @@ else
   FCREPO_HOME=${1}
 fi
 
+# Not a very strict check, but this is just quick and dirty at this point
 if [ ! -f ${FCREPO_HOME}/pom.xml ]; then
   echo ""
   echo "Please start script using (or from) the fcrepo-webapp directory."
@@ -40,10 +45,6 @@ if [ ! -f ${FCREPO_HOME}/pom.xml ]; then
   exit 1
 else
   cd ${FCREPO_HOME}
-fi
-
-if [ ! -z "$2" ] ; then
-  CONFIG_OPTS="config/infinispan/${2}/infinispan.xml"
 fi
 
 BENCHTOOL=`ls -tr $( find ~/.m2/repository -name bench-tool*-with-dependencies.jar ) | head -1`
@@ -61,7 +62,7 @@ mkdir -p ${REPORT_DIR}
 
 for CONFIG in "${CONFIG_OPTS[@]}" ; do
   LABEL=`expr match "$CONFIG" '^config/infinispan/\(.*\)/infinispan.xml$'`
-  MAVEN_OPTS=${MAVEN_MEMORY} mvn -Dfcrepo.infinispan.cache_configuration=${CONFIG} jetty:run > /tmp/jetty.console 2>&1 &
+  MAVEN_OPTS=${MAVEN_MEMORY} mvn -Dfcrepo.infinispan.cache_configuration=${CONFIG} clean jetty:run > /tmp/jetty.console 2>&1 &
   tail -f /tmp/jetty.console | while read LOGLINE ; do
     [[ "${LOGLINE}" == *"Started Jetty Server"* ]] && pkill -P $$ tail
   done
@@ -69,8 +70,16 @@ for CONFIG in "${CONFIG_OPTS[@]}" ; do
   echo "Running new test [config: ${CONFIG}] [Jetty pid: ${JETTY_PID}]"
 
   # Run benchtool with default size, 5 threads, and 20k objects
-  java -jar ${BENCHTOOL} -f http://localhost:8080 -n 20000 -t 5 -l ${REPORT_DIR}/${LABEL}-durations-20000.log
+  java -jar ${BENCHTOOL} -f http://localhost:8080 -n ${OBJECTS} -t ${THREADS} -l ${REPORT_DIR}/${LABEL}-durations-${OBJECTS}.log
 
+  # Clean up the Jetty process
   kill ${JETTY_PID}
   wait ${JETTY_PID}
+
+  # Output images of the benchtool durations
+  gnuplot <<- EOF
+	set term png
+	set output "${REPORT_DIR}/${LABEL}-durations-${OBJECTS}.png"
+	 plot "${REPORT_DIR}/${LABEL}-durations-${OBJECTS}.log" title "Duration" with lines
+	EOF
 done
