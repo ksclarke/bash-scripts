@@ -17,7 +17,7 @@
 ####
 
 # TODO: make these arguments?
-THREADS=10
+THREADS=15
 OBJECTS=30000
 
 MAVEN_MEMORY="-Xmx2048m"
