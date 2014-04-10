@@ -18,7 +18,7 @@
 
 # TODO: make these arguments?
 THREADS=10
-OBJECTS=3000
+OBJECTS=30000
 
 MAVEN_MEMORY="-Xmx2048m"
 CONFIG_OPTS=( \
