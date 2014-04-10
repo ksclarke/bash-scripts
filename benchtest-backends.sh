@@ -6,7 +6,6 @@
 # Usage:
 #   benchtest-backends.sh (with script in $PATH, run from the fcrepo-webapp directory)
 #   ./benchtest-backends.sh ~/Workspace/fcrepo4/fcrepo-webapp (runs all config options)
-#   ./benchtest-backends.sh ~/Workspace/fcrepo4/fcrepo-webapp file (runs just file config)
 #
 # Dependencies:
 #   pkill, pgrep (not standard across all *nixs?)
@@ -18,8 +17,8 @@
 ####
 
 # TODO: make these arguments?
-THREADS=15
-OBJECTS=30000
+THREADS=10
+OBJECTS=3000
 
 MAVEN_MEMORY="-Xmx2048m"
 CONFIG_OPTS=( \
