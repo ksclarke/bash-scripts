@@ -62,7 +62,7 @@ mkdir -p ${REPORT_DIR}
 for CONFIG in "${CONFIG_OPTS[@]}" ; do
   LABEL=`expr match "$CONFIG" '^config/infinispan/\(.*\)/infinispan.xml$'`
   MAVEN_OPTS=${MAVEN_MEMORY} mvn -Dfcrepo.infinispan.cache_configuration=${CONFIG} clean jetty:run > /tmp/jetty.console 2>&1 &
-  tail -f /tmp/jetty.console | while read LOGLINE ; do
+  tail -F /tmp/jetty.console | while read LOGLINE ; do
     [[ "${LOGLINE}" == *"Started Jetty Server"* ]] && pkill -P $$ tail
   done
   JETTY_PID=`pgrep -P $$ java`
@@ -74,6 +74,9 @@ for CONFIG in "${CONFIG_OPTS[@]}" ; do
   # Clean up the Jetty process
   kill ${JETTY_PID}
   wait ${JETTY_PID}
+
+  # Do an explicit cleanup since lazy garbage collection doesn't seem to finish with Jetty shutdown
+  rm -r ${FCREPO_HOME}/fcrepo4-data/*
 
   # Output images of the benchtool durations
   gnuplot <<- EOF
