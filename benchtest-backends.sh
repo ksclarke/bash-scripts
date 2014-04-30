@@ -137,6 +137,8 @@ for CONFIG in "${CONFIG_OPTS[@]}" ; do
     gnuplot <<- EOF
 	set term png
 	set output "${REPORT_DIR}/${LABEL}-durations-${OBJECTS}-${REPORT_TIMESTAMP}.png"
+        set ylabel "Milliseconds"
+        set xlabel "Objects"
 	plot "${REPORT_DIR}/${LABEL}-durations-${OBJECTS}.log" title "Duration" with lines
 	EOF
   fi
