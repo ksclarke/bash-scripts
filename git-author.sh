@@ -79,7 +79,7 @@ get_author() {
     done
 
     if [ ! ${CONTINUE} ] ; then
-      break;
+      break
     fi
   done
 }
