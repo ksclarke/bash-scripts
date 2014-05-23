@@ -23,7 +23,7 @@ if [ ! -f "pom.xml" ]; then
 fi
 
 CURRENT_DIR=`pwd`
-PROECT="futures/fcrepo4"
+PROJECT="futures/fcrepo4"
 USERNAMES=(`curl -s "https://api.github.com/repos/${PROJECT}/contributors" | jq '.[] | .login'`)
 
 #
