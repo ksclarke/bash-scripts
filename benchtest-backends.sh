@@ -14,12 +14,39 @@
 #   fallocate
 #
 # Author: Kevin S. Clarke <ksclarke@gmail.com>
-# Last updated: 2014-04-30
+# Last updated: 2014-05-25
 ####
 
-# TODO: make these arguments?
+# TODO: make these arguments? Threads only work with benchtool.
 THREADS=15
-OBJECTS=1000000
+# What's put in OBJECTS is only kept for non-hierarchical tests
+OBJECTS=30000
+
+# If you want to use hierarchy, we'll reset the number of objects based
+# on the structure you select: 256/256/256, 128/128/128, 64/64/64, etc.
+HIERARCHY=true
+LEVEL_MAX=64
+
+# Whether we want extra logging output
+DEBUG=true
+
+#
+# You shouldn't need to change anything below this point
+#
+
+# These are only used if we're testing with hierarchy
+BATCH=1
+DIR=1
+FILE=0
+
+# If we're testing with hierarchy, we set the total object count
+if $HIERARCHY ; then
+  OBJECTS=$(( LEVEL_MAX ** 3 ))
+
+  if $DEBUG ; then
+    echo "Setting number of hierarchical objects to: ${OBJECTS} (${LEVEL_MAX}/${LEVEL_MAX}/${LEVEL_MAX})"
+  fi
+fi
 
 JETTY_MEMORY="-Xmx2048m"
 CONFIG_OPTS=( \
@@ -68,6 +95,20 @@ function benchmark_with_benchtool {
   java -jar ${BENCHTOOL} -f http://localhost:8080 -n ${OBJECTS} -t ${THREADS} -l ${REPORT_DIR}/${1}-durations-${OBJECTS}.log
 }
 
+# Function to change the hierarchical path of the next object
+function increment_hierarchy {
+  if [ $FILE -lt $LEVEL_MAX ] ; then
+    FILE=$(( $FILE + 1 ))
+  elif [ $DIR -lt $LEVEL_MAX ] ; then
+    DIR=$(( $DIR + 1 ))
+    FILE=1
+  elif [ $BATCH -lt $LEVEL_MAX ] ; then
+    BATCH=$(( $BATCH + 1 ))
+    DIR=1
+    FILE=1
+  fi
+}
+
 # Function for using curl to benchmark
 function benchmark_with_curl {
   echo "Starting benchmark with curl"
@@ -88,7 +129,17 @@ function benchmark_with_curl {
     MILLISECS=`expr ${END} - ${START}`
     echo "Datastream created [${MILLISECS} ms]"
 
-    URL="http://localhost:8080/rest/objects/${ID}/ds1/fcr:content"
+    if $HIERARCHY ; then
+      URL="http://localhost:8080/rest/objects/${BATCH}/${DIR}/${FILE}/${ID}/ds1/fcr:content"
+      increment_hierarchy
+    else
+      URL="http://localhost:8080/rest/objects/${ID}/ds1/fcr:content"
+    fi
+
+    if $DEBUG ; then
+      echo "Connecting to Fedora with: $URL"
+    fi
+
     START=`date +"%s%3N"`
     CODE=`curl -X POST -o /dev/null --silent --write-out '%{http_code}\n' --upload-file ${DS_FILE} ${URL}`
 
